@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: ["**"] # run on all branches
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+          cache: true
+
+      - name: Install environment
+        run: pixi install -e ci
+
+      - name: Lint with ruff
+        run: pixi run -e ci lint
+
+      - name: format with ruff
+        run: pixi run -e ci format
+
+      # Run FULL test suite on main
+      - name: Run all tests (main only)
+        if: github.ref == 'refs/heads/main'
+        run: pixi run -e ci test:cov
+
+      # Run ONLY unit tests on other branches
+      - name: Run unit tests (non-main)
+        if: github.ref != 'refs/heads/main'
+        run: pixi run -e ci test -m unit
