@@ -17,14 +17,52 @@ platforms = ["linux-64"]
 pth_disasters = { path = ".", editable = true }
 
 [tool.pixi.tasks]
+test = "pytest"
+"test:cov" = "pytest -v --cov=src --cov-report=html:.cache/htmlcov --cov-report=term-missing"
+lint = "ruff check src tests"
+format = "ruff format src tests"
 
 [tool.pixi.feature.utils.dependencies]
-lefthook = "*"
-
-[tool.pixi.feature.test.dependencies]
+lefthook = ">=2.1.6,<2.2"
 
 [tool.pixi.feature.lint.dependencies]
+ruff = ">=0.15.11,<0.16"
+
+[tool.pixi.feature.test.dependencies]
+pytest = ">=9.0.3,<10"
+pytest-cov = ">=7.1.0,<8"
 
 [tool.pixi.environments]
 dev = { features = ["test",  "lint", "utils"], solve-group = "default" }
 ci = { features = ["test",  "lint"], solve-group = "default" }
+
+[dependency-groups]
+test = ["pytest-bdd-property>=0.1.0,<0.2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=src --cov-report=term-missing"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+    "e2e: end-to-end tests",
+]
+
+[tool.coverage.run]
+omit = ["*/.*/*", "*/.*/"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.ruff]
+target-version = "py311"
+fix = true
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "N", "C4", "RUF"]
